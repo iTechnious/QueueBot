@@ -1,7 +1,6 @@
 import discord
 import asyncio
 
-name = "test"
 
-async def run(client, message, args):
-
+async def execute(client, message, args):
+    await message.channel.send(embed=discord.Embed(color=discord.Color.green(), description="**IT WORKS!**"))
