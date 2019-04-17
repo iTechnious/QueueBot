@@ -1,0 +1,9 @@
+{
+  "queues": {
+
+  },
+
+  "config": {
+    "prefix": "!"
+  }
+}
