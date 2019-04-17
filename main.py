@@ -37,14 +37,14 @@ def create_confs():
 
 @client.event
 async def on_message(message):
-    print()
     server_name = parse_server_name(message.guild.name)
 
     config = json.load(open("configs/%s.json" % server_name))
     prefix = config["config"]["prefix"]
 
     if str(message.content).startswith(prefix):
-        invoke = str(message.content).split(" ")[0][1:]
+        print()
+        invoke = str(message.content).split(" ")[0][len(prefix):]
         print(invoke)
         if list_commands.__contains__("command_" + invoke):
             args = str(message.content).split(" ")
@@ -62,7 +62,7 @@ async def on_guild_join(guild):
 
 @client.event
 async def on_ready():
-    print("Bot started succesfully...")
+    print("Bot started succesfully...\n")
     await client.change_presence(activity=discord.Game(name='Sösels Bot'))
 
     create_confs()
