@@ -3,4 +3,4 @@
 venv/
 *.pyc
 
-configs/*.json
+statics/config.py

@@ -5,43 +5,72 @@ from shutil import copy
 import importlib
 import json
 import time
+import pymysql
+import warnings
 
 from statics import config as conf
 import commands
 
+warnings.simplefilter("ignore")
+
 client = discord.Client()
 
+def get_setting(guild, setting):
+    connection = pymysql.connect(
+        host=conf.mysql["host"],
+        port=conf.mysql["port"],
+        user=conf.mysql["user"],
+        password=conf.mysql["pass"],
+        db=conf.mysql["db"]
+    )
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM %s WHERE setting=%s" % (guild, setting))
+        res = cursor.fetchone()
 
-def parse_server_name(guild_name):
-    name = ""
-    for letter in guild_name:
-        if letter.isalpha():
-            name += letter
-    return str(name)
+    connection.close()
 
+    return res
 
-def create_confs():
-    for guild in client.guilds:
-        print(guild.name)
+def init_db():
+    connection = pymysql.connect(
+        host=conf.mysql["host"],
+        port=conf.mysql["port"],
+        user=conf.mysql["user"],
+        password=conf.mysql["pass"]
+    )
 
-        name = parse_server_name(guild.name)
+    with connection.cursor() as cursor:
+        cursor.execute("CREATE DATABASE IF NOT EXISTS %s" % conf.mysql["db"])
+        connection.commit()
+        connection.close()
 
-        print("creating config if not extits")
+    connection = pymysql.connect(
+        host=conf.mysql["host"],
+        port=conf.mysql["port"],
+        user=conf.mysql["user"],
+        password=conf.mysql["pass"],
+        db=conf.mysql["db"]
+    )
+    with connection.cursor() as cursor:
+        for guild in client.guilds:
+            name = guild.id
+            print(name)
+            
+            cursor.execute("CREATE TABLE IF NOT EXISTS '%s' ("
+                           "setting VARCHAR(100),"
+                           "value VARCHAR(100)"
+                           ")" % str(name))
+            if cursor.execute("SELECT * FROM %s" % name) == 0:
+                cursor.execute("INSERT INTO %s (setting, value) VALUES ('prefix', '!')" % name)
 
-        if not os.path.isfile("configs/%s.json" % name):
-            copy("standartconf.json", "configs/%s.json" % name)
-        else:
-            print("config exits...")
-        print()
+            print()
+    connection.commit()
+    connection.close()
 
 
 @client.event
 async def on_message(message):
-    server_name = parse_server_name(message.guild.name)
-
-    config = json.load(open("configs/%s.json" % server_name))
-    prefix = config["config"]["prefix"]
-
+    
     if str(message.content).startswith(prefix):
         print()
         invoke = str(message.content).split(" ")[0][len(prefix):]
@@ -65,7 +94,7 @@ async def on_ready():
     print("Bot started succesfully...\n")
     await client.change_presence(activity=discord.Game(name='Sösels Bot'))
 
-    create_confs()
+    init_db()
 
     print("trying to register commands...")
     global list_commands
