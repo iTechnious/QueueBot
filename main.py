@@ -53,10 +53,12 @@ def init_db():
     )
     with connection.cursor() as cursor:
         for guild in client.guilds:
-            name = guild.id
-            print(name)
+            name = int(guild.id)
+            name = "_%s" % str(name)
+            print("checking config for server '%s' (%s)" %(str(guild.name), int(guild.id)))
             
-            cursor.execute("CREATE TABLE IF NOT EXISTS '%s' ("
+            cursor.execute('CREATE TABLE IF NOT EXISTS %s ('
+                           "id INT(20) AUTO_INCREMENT PRIMARY KEY,"
                            "setting VARCHAR(100),"
                            "value VARCHAR(100)"
                            ")" % str(name))
@@ -86,13 +88,14 @@ async def on_message(message):
 @client.event
 async def on_guild_join(guild):
     print("joined the Server: %s" % guild.name)
-    create_confs()
+    print("creating configs...")
+    init_db()
 
 
 @client.event
 async def on_ready():
     print("Bot started succesfully...\n")
-    await client.change_presence(activity=discord.Game(name='Sösels Bot'))
+    await client.change_presence(activity=discord.Game(name='nothing...'))
 
     init_db()
 

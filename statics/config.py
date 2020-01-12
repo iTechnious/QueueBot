@@ -1,5 +1,5 @@
 bot = {
-    "token": "NTY3MDMzNDA4Mjk1Nzk2NzY3.XhEqdg.dZ4r-oP4LQ8bN4YEZnfk1MbcLko"
+    "token": "NTY3MDMzNDA4Mjk1Nzk2NzY3.XhIRXg.jH-ZbpqPhi0rGgTipnCiFBA5wrY"
 }
 
 mysql = {

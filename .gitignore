@@ -4,3 +4,4 @@ venv/
 *.pyc
 
 statics/config.py
+.vscode/settings.json
