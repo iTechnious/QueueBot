@@ -24,7 +24,7 @@ def get_setting(guild, setting):
         db=conf.mysql["db"]
     )
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM %s WHERE setting=%s" % (guild, setting))
+        cursor.execute("SELECT * FROM _%s WHERE setting=%s" % (str(guild), str(setting)))
         res = cursor.fetchone()
 
     connection.close()
@@ -72,6 +72,7 @@ def init_db():
 
 @client.event
 async def on_message(message):
+    prefix = get_setting(message.guild.id, "prefix")
     
     if str(message.content).startswith(prefix):
         print()
