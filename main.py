@@ -11,25 +11,11 @@ import warnings
 from statics import config as conf
 import commands
 
+from globals import get_setting
+
 warnings.simplefilter("ignore")
 
 client = discord.Client()
-
-def get_setting(guild, setting):
-    connection = pymysql.connect(
-        host=conf.mysql["host"],
-        port=conf.mysql["port"],
-        user=conf.mysql["user"],
-        password=conf.mysql["pass"],
-        db=conf.mysql["db"]
-    )
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM _%s WHERE setting=%s" % (str(guild), str(setting)))
-        res = cursor.fetchone()
-
-    connection.close()
-
-    return res
 
 def init_db():
     connection = pymysql.connect(
@@ -73,14 +59,15 @@ def init_db():
 @client.event
 async def on_message(message):
     prefix = get_setting(message.guild.id, "prefix")
+    print(prefix)
     
     if str(message.content).startswith(prefix):
-        print()
         invoke = str(message.content).split(" ")[0][len(prefix):]
-        print(invoke)
         if list_commands.__contains__("command_" + invoke):
             args = str(message.content).split(" ")
             del args[0]
+            print("------- new command handle -------")
+            print(invoke)
             print(args)
             module = importlib.import_module("commands.command_" + invoke)
             await getattr(module, "execute")(client, message, args)
