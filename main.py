@@ -15,6 +15,8 @@ from globals import get_setting
 
 warnings.simplefilter("ignore")
 
+print("starting...")
+
 client = discord.Client()
 
 def init_db():
@@ -55,11 +57,12 @@ def init_db():
     connection.commit()
     connection.close()
 
+    return True
+
 
 @client.event
 async def on_message(message):
     prefix = get_setting(message.guild.id, "prefix")
-    print(prefix)
     
     if str(message.content).startswith(prefix):
         invoke = str(message.content).split(" ")[0][len(prefix):]
