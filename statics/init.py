@@ -35,7 +35,7 @@ def init_db(client):
             if cursor.execute("SELECT * FROM %s" % name) == 0:
                 cursor.execute("INSERT INTO %s (setting, value) VALUES ('prefix', '!')" % name)
 
-            print()
+        print()
     connection.commit()
     connection.close()
 

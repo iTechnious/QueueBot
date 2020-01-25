@@ -3,6 +3,13 @@ import pymysql
 from statics import config as conf
 
 
+def init():
+    global music
+    music = {}
+    global tickets
+    tickets = {}
+    
+
 def change_setting(guild, setting, value):
     connection = pymysql.connect(
         host=conf.mysql["host"],
