@@ -1,18 +1,18 @@
-import discord
 import asyncio
-import os
-from shutil import copy
+import commands
 import importlib
 import json
+import os
 import time
-import pymysql
 import warnings
+from shutil import copy
 
-from statics import init
-from statics import config as conf
-import commands
+import discord
+import pymysql
 
 from globals import get_setting
+from statics import config as conf
+from statics import init
 
 warnings.simplefilter("ignore")
 
