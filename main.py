@@ -69,13 +69,14 @@ class client_class(discord.Client):
         print(list_commands)
 
 
-    async def on_voice_state_update(self, member, before, after):        
-        if member.id == client.user.id:
-            return
+    async def on_voice_state_update(self, member, before, after):
         supportchannel = get_setting(str(member.guild.id), "supportchannel")
-        channel = member.guild.get_channel(int(supportchannel))
         supportrole = get_setting(str(member.guild.id), "supportrole")
         voice = get(client.voice_clients, guild=member.guild)
+        channel = member.guild.get_channel(int(supportchannel))
+
+        if member.id == client.user.id:
+            return
 
         if after.channel is not None and str(after.channel.id) == supportchannel:
             print(member.name, "joined support channel.")
@@ -109,39 +110,24 @@ class client_class(discord.Client):
 
             if voice is None: 
                 voice = await channel.connect()
-                with youtube_dl.YoutubeDL({}) as ydl:
-                    song_info = ydl.extract_info(get_setting(member.guild.id, "supportvideo"), download=False)
-                url = song_info["formats"][0]["url"]
-                
-                while True:
-                    if voice.is_connected():
-                        voice.play(discord.FFmpegPCMAudio(url))
-
-                        while voice.is_playing():
-                            await asyncio.sleep(1)
-                    else:
-                        break
                 
             elif not voice.is_connected():
                 voice = await channel.connect()
-                with youtube_dl.YoutubeDL({}) as ydl:
-                    song_info = ydl.extract_info(get_setting(member.guild.id, "supportvideo"), download=False)
-                url = song_info["formats"][0]["url"]
-
-                while True:
-                    if voice.is_connected():
-                        voice.play(discord.FFmpegPCMAudio(url))
-
-                        while voice.is_playing():
-                            await asyncio.sleep(1)
-                    else:
-                        break
-
-                while voice.is_playing():
-                    await asyncio.sleep(1)
-                await voice.disconnect()
             else:
                 await voice.move_to(channel)
+
+
+            with youtube_dl.YoutubeDL({}) as ydl:
+                song_info = ydl.extract_info(get_setting(member.guild.id, "supportvideo"), download=False)
+                url = song_info["formats"][1]["url"]
+                
+                while voice.is_connected():
+                    voice.play(discord.FFmpegPCMAudio(url, before_options=" -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"))
+
+                    while voice.is_playing():
+                        await asyncio.sleep(1)
+                    voice.stop()
+                    asyncio.sleep(1)
 
 
         elif after.channel is None:
@@ -150,9 +136,12 @@ class client_class(discord.Client):
                     del tickets[member.id]
                 except KeyError:
                     pass
-                if voice is not None and len(tickets.keys()) == 0:
-                    await voice.disconnect()
                 print(member.name, "left support channel.")
+                if voice is not None:
+                    for key in tickets.keys():
+                        if tickets[key]["guild"] == member.id:
+                            return
+                    await voice.disconnect()
                 return
 
         elif before.channel is not None:
@@ -163,10 +152,13 @@ class client_class(discord.Client):
                     del tickets[member.id]
                 except KeyError:
                     pass
-                if voice is not None and len(tickets.keys()) == 0:
-                    await voice.disconnect()
                 print(member.name, "left support channel.")
-            return           
+                if voice is not None:
+                    for key in tickets.keys():
+                        if tickets[key]["guild"] == member.id:
+                            return
+                    await voice.disconnect()
+                return         
         
         
 globals.init()
