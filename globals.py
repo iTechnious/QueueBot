@@ -3,11 +3,10 @@ import pymysql
 from statics import config as conf
 
 
-def init():
-    global music
-    music = {}
-    global tickets
-    tickets = {}
+global music
+music = {}
+global tickets
+tickets = {}
     
 
 def change_setting(guild, setting, value):
@@ -18,7 +17,6 @@ def change_setting(guild, setting, value):
         password=conf.mysql["pass"],
         db=conf.mysql["db"]
     )
-
 
     with connection.cursor() as cursor:
         if cursor.execute("SELECT * FROM _%s WHERE setting='%s'" % (str(guild), str(setting))) > 0:
