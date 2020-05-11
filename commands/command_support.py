@@ -1,6 +1,7 @@
 import discord
 from discord.utils import get
-from globals import get_setting, change_setting
+
+from globals import change_setting, get_setting
 
 
 async def execute(client, message, args):

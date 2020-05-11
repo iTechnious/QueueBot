@@ -3,20 +3,19 @@ import commands
 import importlib
 import json
 import os
-import time
 import random
+import time
 import warnings
 from shutil import copy
-import youtube_dl
 
 import discord
+import pymysql
+import youtube_dl
 from discord import FFmpegPCMAudio
 from discord.utils import get
-import pymysql
 
 import globals
-
-from globals import get_setting
+from globals import get_setting, music, tickets
 from statics import config as conf
 from statics import init
 
@@ -122,7 +121,10 @@ class client_class(discord.Client):
                 url = song_info["formats"][1]["url"]
                 
                 while voice.is_connected():
-                    voice.play(discord.FFmpegPCMAudio(url, before_options=" -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"))
+                    try:
+                        voice.play(discord.FFmpegPCMAudio(url, before_options=" -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5", options="-bufsize 640k -b:a 192k"))
+                    except:
+                        pass
 
                     while voice.is_playing():
                         await asyncio.sleep(1)
@@ -139,7 +141,7 @@ class client_class(discord.Client):
                 print(member.name, "left support channel.")
                 if voice is not None:
                     for key in tickets.keys():
-                        if tickets[key]["guild"] == member.id:
+                        if tickets[key]["guild"] == member.guild.id:
                             return
                     await voice.disconnect()
                 return
@@ -163,7 +165,6 @@ class client_class(discord.Client):
         
 globals.init()
 
-from globals import tickets, music
 
 client = client_class()
 
