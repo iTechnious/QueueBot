@@ -23,7 +23,7 @@ warnings.simplefilter("ignore")
 
 print("starting...")
 
-# still nothing
+# still nothing...
 
 
 class client_class(discord.Client):
