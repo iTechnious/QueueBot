@@ -1,7 +1,5 @@
 import pymysql
-
 from statics import config as conf
-
 
 def init_db(client):
     connection = pymysql.connect(
