@@ -23,7 +23,7 @@ warnings.simplefilter("ignore")
 
 print("starting...")
 
-# test part 2
+# test part 3
 
 class client_class(discord.Client):
     async def on_message(self, message):
