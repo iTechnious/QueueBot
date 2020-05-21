@@ -1,6 +1,7 @@
 .vs/
+.vscode/
 .idea/
 venv/
 *.pyc
 
-configs/*.json
+statics/config.py

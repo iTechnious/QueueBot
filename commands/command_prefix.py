@@ -1,25 +1,22 @@
 import discord
 import time
 import json
-
+from globals import change_setting, get_setting
 
 async def execute(client, message, args):
     success = False
     if len(args) <= 0:
-        res = await message.channel.send(embed=discord.Embed(color=discord.Color.red(), title="**Fehler**", description="**Bitte gebe den neunen Prefix an!**"))
+        res = await message.channel.send(embed=discord.Embed(color=discord.Color.red(), title="**Error**", description="**Please enter the new prefix**"))
     else:
-        name = ""
-        for letter in message.guild.name:
-            if letter.isalpha():
-                name += letter
-
-        config = json.load(open("configs/%s.json" % name))
-        config["config"]["prefix"] = args[0]
-        success = True
+        success = change_setting(message.guild.id, "prefix", args[0])
 
     if success:
-        res = await message.channel.send(embed=discord.Embed(color=discord.Color.green(), title="**Erfolg**", description="Prefix erfolgreich zu **%s** geändert!" % config["config"]["prefix"]))
+        res = await message.channel.send(embed=discord.Embed(color=discord.Color.green(), title="**Success**", description="Prefix changed successfully to **%s**!" % get_setting(message.guild.id, "prefix")))
 
-    await message.delete()
+    try:
+        await message.delete()
+    except discord.errors.Forbidden:
+        pass # contact admins (comming soon)
+
     time.sleep(2)
     await res.delete()
