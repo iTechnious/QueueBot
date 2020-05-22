@@ -114,8 +114,10 @@ class ClientClass(discord.Client):
                 url = song_info["formats"][1]["url"]
 
                 while voice.is_connected():
-                    voice.play(discord.FFmpegPCMAudio(url,
-                                                      before_options=" -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"))
+                    try:
+                        voice.play(discord.FFmpegPCMAudio(url, before_options=" -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"))
+                    except discord.errors.ClientException:
+                        pass
 
                     while voice.is_playing():
                         await asyncio.sleep(1)
@@ -131,8 +133,9 @@ class ClientClass(discord.Client):
                 print(member.name, "left support channel.")
                 if voice is not None:
                     for key in tickets.keys():
-                        if tickets[key]["guild"] == member.id:
+                        if tickets[key]["guild"] == channel.guild.id:
                             return
+                    print(tickets)
                     await voice.disconnect()
                 return
 
