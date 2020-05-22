@@ -1,15 +1,17 @@
 import asyncio
+import datetime
 import importlib
 import os
 import random
+import time
 import warnings
-import youtube_dl
 
 import discord
+import youtube_dl
 from discord.utils import get
 
-from globals import get_setting
-from globals import tickets
+from globals import get_setting, tickets
+from helpers.create_ticket import run as create_ticket
 from statics import config as conf
 from statics import init
 
@@ -65,39 +67,38 @@ class ClientClass(discord.Client):
     @staticmethod
     async def on_voice_state_update(member, before, after):
         supportchannel = get_setting(str(member.guild.id), "supportchannel")
-        supportrole = get_setting(str(member.guild.id), "supportrole")
         voice = get(client.voice_clients, guild=member.guild)
         channel = member.guild.get_channel(int(supportchannel))
 
+        join = False
+        leave = False
+
+        if after.channel is None:
+            if before.channel is not None:
+                if str(before.channel.id) == supportchannel:
+                    leave = True
+        elif str(after.channel.id) != supportchannel:
+            if before.channel is None:
+                pass
+            elif str(before.channel.id) == supportchannel:
+                leave = True
+        elif str(after.channel.id) == supportchannel:
+            join = True
         if member.id == client.user.id:
             return
 
-        if after.channel is not None and str(after.channel.id) == supportchannel:
+        if join:
             print(member.name, "joined support channel.")
-
-            ticket_id = 0
-            while ticket_id == 0:
-                ticket_id = random.getrandbits(64)
-                for item in tickets.keys():
-                    if tickets[item]["id"] == ticket_id:
-                        ticket_id = 0
-
-            tickets[member.id] = {
-                "id": ticket_id,
-                "guild": member.guild.id
-            }
+            create_ticket(member)
 
             await member.send("", embed=discord.Embed(title="Your ticket has been created!", description="You will be automatically moved as soon as a supporter accepts your ticket.\nYou can enjoy some music while you are waiting.", color=discord.Color.purple()))
 
-            for user in member.guild.members:
-                user = member.guild.get_member_named(str(user))
-                if get(user.roles, id=int(supportrole)):
-                    await user.send("A new Support Ticket has been created.\n"
-                                    "User: %s\n"
-                                    "Server: %s\n"
-                                    "You can use the accept command in the support channel to claim the ticket.\n"
-                                    "The ID is: **%s**"
-                                    % (str(member.name), str(member.guild), str(ticket_id)))
+            supporter_chat = await client.fetch_channel(get_setting(member.guild.id, "supporttext"))
+            emb = discord.Embed(title=member.name+" opened ticket #"+str(tickets[member.id]["id"])+".", description="<@"+str(member.id)+"> is waiting in the queue.\nClaim the ticket and move him to your voice channel by reacting to this message.", color=discord.Color.green())
+            ticket_message = await supporter_chat.send("", embed=emb)
+            await ticket_message.add_reaction("✅")
+            
+            tickets[member.id]["message"] = ticket_message
 
             if voice is None:
                 voice = await channel.connect()
@@ -122,37 +123,55 @@ class ClientClass(discord.Client):
                     voice.stop()
                     await asyncio.sleep(1)
 
-        elif after.channel is None:
-            if str(before.channel.id) == str(supportchannel):
-                try:
-                    del tickets[member.id]
-                except KeyError:
-                    pass
-                print(member.name, "left support channel.")
-                if voice is not None:
+        if leave:            
+            try:
+                # await client.delete_message(tickets[member.id]["message"])
+                del tickets[member.id]
+            except KeyError:
+                pass
+            print(member.name, "left support channel.")
+            print(tickets)
+            if voice is not None:
+                for key in tickets.keys():
+                    if tickets[key]["guild"] == channel.guild.id:
+                        return
+                await voice.disconnect()
+            return
+                
+    @staticmethod
+    async def on_reaction_add(reaction, user):
+        if user.id == client.user.id:
+            return
+            
+        if reaction.emoji == "✅":
+            role_names = [role.name for role in user.roles]
+            if "Support" in role_names:
+                if user.voice is not None:
                     for key in tickets.keys():
-                        if tickets[key]["guild"] == channel.guild.id:
-                            return
-                    print(tickets)
-                    await voice.disconnect()
-                return
+                        if tickets[key]["message"].id == reaction.message.id:
+                            ticket = tickets[key]
+                            break
+                    
 
-        elif before.channel is not None:
-            if before.channel.id == after.channel.id:
-                return
-            if str(before.channel.id) == str(supportchannel) and str(supportchannel) != str(after.channel.id):
-                try:
-                    del tickets[member.id]
-                except KeyError:
-                    pass
-                print(member.name, "left support channel.")
-                if voice is not None:
-                    for key in tickets.keys():
-                        if tickets[key]["guild"] == member.id:
-                            return
-                    await voice.disconnect()
-                return
+                    # converted_d1 = datetime.datetime.fromtimestamp(round(ticket["time"]))
+                    # current_time_utc = datetime.datetime.utcnow()
 
+                    diff = round(time.time()) - round(ticket["time"]) / 60000.00
+                    await reaction.message.delete()
+                    await reaction.message.channel.send("", embed=discord.Embed(title="Ticket #"+str(ticket["id"])+" closed.", description="Author: <@"+str(key)+">\nOpen for: " + str(diff) + "\nClaimed by: <@"+str(user.id)+">\n", color=discord.Color.gold()))
+                    await reaction.message.channel.guild.get_member(key).move_to(user.voice.channel)
+                else:
+                    error_message = await reaction.message.channel.send("", embed=discord.Embed(title="", description="🚫 You must be in a voice channel to claim a ticket.", color=discord.Color.red()))
+                    await reaction.remove(user)
+                    time.sleep(2)
+                    await error_message.delete()
+                    
+            else:
+                await reaction.remove(user)
+                return
+        else:
+            return
+        return
 
 client = ClientClass()
 
