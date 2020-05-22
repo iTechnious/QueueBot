@@ -11,11 +11,12 @@ async def execute(client, message, args):
         if message.author.id == message.guild.owner_id:
             await message.channel.send("Notice: You are allowed to use this command, because you are the owner of this server. Would you mind giving yourself the **Queue Admin** role for redundance? You can also give it to other people for administrating QueueBot.")
         else:
-            await message.channel.send("You don't have permission to do that.\nAsk for the **Queue Admin** role.")
+            await message.channel.send("", embed=discord.Embed(title="Insufficient permissions!", description="You need the 'Queue Admin' role to be able to perform this action.", color=discord.Color.red()))
             return
 
     if change_setting(message.guild.id, "supportchannel", args[0]) == True:
-        await message.channel.send("Support Channel changed.")
+        message.add_reaction("✅")
+        await message.channel.send("", embed=discord.Embed(title="Support channel changed!", description="✅ The support channel has been changed successfully!", color=discord.Color.green()))
     else:
         await message.channel.send("There was an error changing the Support Channel. It's probably not your fault. Please consult the bot hoster!")
 

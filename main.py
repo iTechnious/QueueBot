@@ -87,9 +87,7 @@ class ClientClass(discord.Client):
                 "guild": member.guild.id
             }
 
-            await member.send("Your Support Ticket has been created and the support team has been notified.\n"
-                              "You will be automatically moved as soon as a supporter accepts your ticket.\n"
-                              "You can enjoy some music while you are waiting.")
+            await member.send("", embed=discord.Embed(title="Your ticket has been created!", description="You will be automatically moved as soon as a supporter accepts your ticket.\nYou can enjoy some music while you are waiting.", color=discord.Color.purple()))
 
             for user in member.guild.members:
                 user = member.guild.get_member_named(str(user))
