@@ -16,5 +16,5 @@ def run(member):
     tickets[member.id] = {
         "id": ticket_id,
         "guild": member.guild.id,
-        "time": time.time()
+        "time": time.strftime("%Y-%m-%d %H:%M:%S")
     }

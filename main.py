@@ -47,15 +47,13 @@ class ClientClass(discord.Client):
     @staticmethod
     async def on_ready():
         print("Bot started succesfully...\n")
-        # await client.change_presence(activity=discord.Game(name='nothing...'))
-
+        
         init.init_db(client)
 
         print("trying to register commands...")
         global list_commands
         list_commands = []
         for file in os.listdir("commands/"):
-            # print(file)
             if file.endswith(".py"):
                 if file.startswith("command_"):
                     module = file[:-3]
@@ -125,7 +123,6 @@ class ClientClass(discord.Client):
 
         if leave:            
             try:
-                # await client.delete_message(tickets[member.id]["message"])
                 del tickets[member.id]
             except KeyError:
                 pass
@@ -142,8 +139,8 @@ class ClientClass(discord.Client):
     async def on_reaction_add(reaction, user):
         if user.id == client.user.id:
             return
-            
-        if reaction.emoji == "✅":
+        
+        if reaction.emoji == "✅" and str(reaction.message.channel.id) == get_setting(reaction.message.guild.id, "supporttext") and reaction.message.author.name == "Queue":
             role_names = [role.name for role in user.roles]
             if "Support" in role_names:
                 if user.voice is not None:
@@ -151,14 +148,9 @@ class ClientClass(discord.Client):
                         if tickets[key]["message"].id == reaction.message.id:
                             ticket = tickets[key]
                             break
-                    
 
-                    # converted_d1 = datetime.datetime.fromtimestamp(round(ticket["time"]))
-                    # current_time_utc = datetime.datetime.utcnow()
-
-                    diff = round(time.time()) - round(ticket["time"]) / 60000.00
                     await reaction.message.delete()
-                    await reaction.message.channel.send("", embed=discord.Embed(title="Ticket #"+str(ticket["id"])+" closed.", description="Author: <@"+str(key)+">\nOpen for: " + str(diff) + "\nClaimed by: <@"+str(user.id)+">\n", color=discord.Color.gold()))
+                    await reaction.message.channel.send("", embed=discord.Embed(title="Ticket #"+str(ticket["id"])+" closed.", description="Author: <@"+str(key)+">\nOpened: " + ticket["time"] + "\nClosed: " + str(time.strftime("%Y-%m-%d %H:%M:%S")) + "\nClaimed by: <@"+str(user.id)+">\n", color=discord.Color.gold()))
                     await reaction.message.channel.guild.get_member(key).move_to(user.voice.channel)
                 else:
                     error_message = await reaction.message.channel.send("", embed=discord.Embed(title="", description="🚫 You must be in a voice channel to claim a ticket.", color=discord.Color.red()))
