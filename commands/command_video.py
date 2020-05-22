@@ -14,11 +14,15 @@ async def execute(client, message, args):
             await message.channel.send("You don't have permission to do that.\nAsk for the **Queue Admin** role.")
             return
 
-    await message.channel.send("Testing link...")
+    msg = await message.channel.send("", embed=discord.Embed(title="", description="🔄 Testing your link...", color=discord.Color.blue()))
     with youtube_dl.YoutubeDL({}) as ydl:
         try:
             ydl.extract_info(args[0], download=False)
             change_setting(message.guild.id, "supportvideo", args[0])
-            await message.channel.send("Video changed.")
+            await message.add_reaction("👍")
+            await msg.delete()
+            await message.channel.send("", embed=discord.Embed(title="", description="✅ Changed video successfully!", color=discord.Color.green()))
         except:
-            await message.channel.send("This link is not valid.")
+            await msg.delete()
+            await message.add_reaction("👎")
+            await message.channel.send("", embed=discord.Embed(title="", description="🚫 Invalid URL!", color=discord.Color.red()))
