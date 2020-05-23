@@ -123,11 +123,13 @@ class ClientClass(discord.Client):
 
         if leave:            
             try:
+                supporttext = await client.fetch_channel(get_setting(member.guild.id, "supporttext"))
+                ticket_msg = await supporttext.fetch_message(tickets[member.id]["message"].id)
+                await ticket_msg.delete()
                 del tickets[member.id]
             except KeyError:
                 pass
             print(member.name, "left support channel.")
-            print(tickets)
             if voice is not None:
                 for key in tickets.keys():
                     if tickets[key]["guild"] == channel.guild.id:
