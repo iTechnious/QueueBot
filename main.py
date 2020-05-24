@@ -123,9 +123,13 @@ class ClientClass(discord.Client):
 
         if leave:            
             try:
-                supporttext = await client.fetch_channel(get_setting(member.guild.id, "supporttext"))
-                ticket_msg = await supporttext.fetch_message(tickets[member.id]["message"].id)
-                await ticket_msg.delete()
+                try:
+                    supporttext = await client.fetch_channel(get_setting(member.guild.id, "supporttext"))
+                    ticket_msg = await supporttext.fetch_message(tickets[member.id]["message"].id)
+                    await ticket_msg.delete()
+                except discord.errors.NotFound:
+                    pass
+
                 del tickets[member.id]
             except KeyError:
                 pass
@@ -142,7 +146,7 @@ class ClientClass(discord.Client):
         if user.id == client.user.id:
             return
         
-        if reaction.emoji == "✅" and str(reaction.message.channel.id) == get_setting(reaction.message.guild.id, "supporttext") and reaction.message.author.name == "Queue":
+        if reaction.emoji == "✅" and str(reaction.message.channel.id) == get_setting(reaction.message.guild.id, "supporttext") and reaction.message.author.id == client.user.id:
             role_names = [role.name for role in user.roles]
             if "Support" in role_names:
                 if user.voice is not None:
@@ -166,6 +170,7 @@ class ClientClass(discord.Client):
         else:
             return
         return
+
 
 client = ClientClass()
 
