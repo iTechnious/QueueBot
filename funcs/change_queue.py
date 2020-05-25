@@ -14,7 +14,7 @@ async def execute(client, message, args):
             await message.channel.send("", embed=discord.Embed(title="Insufficient permissions!", description="You need the 'Queue Admin' role to be able to perform this action.", color=discord.Color.red()))
             return
 
-    if change_setting(message.guild.id, "supportchannel", args[0]) == True:
+    if change_setting(message.guild.id, "supportchannel", args[1]) == True:
         message.add_reaction("✅")
         await message.channel.send("", embed=discord.Embed(title="Support channel changed!", description="✅ The support channel has been changed successfully!", color=discord.Color.green()))
     else:

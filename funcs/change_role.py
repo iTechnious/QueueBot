@@ -17,31 +17,12 @@ async def execute(client, message, args):
 
     # check if correct option was provided
     if args == []:
-        await message.channel.send("Please provide the role id of the support team.\n"
-                                   "You can also set the support text channel by typing 'text' before the channel id.")
+        await message.channel.send("Please provide the role id of the support team.")
         return
     
-    if args[0] == "text":
-        try:
-            args[1] = int(args[1])
-        except ValueError:
-            await message.channel.send("Please Provide a channel ID. You can get the role ID by right clicking on the channel.\n"
-            "Please make sure to enable developer mode first.")
-            return
-        if get(message.guild.text_channels, id=args[1]):
-            if change_setting(message.guild.id, "supporttext", str(args[1])):
-                await message.channel.send("Text Channel changed.")
-            else:
-                await message.channel.send("There was an error changing the Support Channel. It's probably not your fault. Please consult the bot hoster!")
-
-        else:
-            await message.channel.send("This channel doesn't exist on this server or is not a text channel.")
-            return
-        return
-
     else:
         try:
-            args[0] = int(args[0])
+            args[1] = int(args[1])
         except ValueError:
             await message.channel.send("", embed=discord.Embed(title="🚫 Please provide a role ID.", description="You need to provide the role id of the support role.", color=discord.Color.red())
                                                 .add_field(
@@ -56,12 +37,12 @@ async def execute(client, message, args):
                                                 ))
             return
 
-        if not get(message.guild.roles, id=args[0]):
+        if not get(message.guild.roles, id=args[1]):
             await message.channel.send("", embed=discord.Embed(title="", description="🚫 This role does not exist.", color=discord.Color.red()))
             return
 
         # change and check change; notify on discord
-        if change_setting(message.guild.id, "supportrole", str(args[0])):
+        if change_setting(message.guild.id, "supportrole", str(args[1])):
             await message.channel.send("", embed=discord.Embed(title="Support role changed!", description="✅ The support role has been changed successfully!", color=discord.Color.green()))
         else:
             await message.channel.send("There was an error changing the Support role. It's probably not your fault. Please consult the bot hoster!")        
