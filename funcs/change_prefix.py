@@ -8,7 +8,7 @@ async def execute(client, message, args):
     if len(args) <= 0:
         res = await message.channel.send(embed=discord.Embed(color=discord.Color.red(), title="**Error**", description="**Please enter the new prefix**"))
     else:
-        success = change_setting(message.guild.id, "prefix", args[0])
+        success = change_setting(message.guild.id, "prefix", args[1])
 
     if success:
         res = await message.channel.send(embed=discord.Embed(color=discord.Color.green(), title="**Success**", description="Prefix changed successfully to **%s**!" % get_setting(message.guild.id, "prefix")))

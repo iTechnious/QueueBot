@@ -17,8 +17,8 @@ async def execute(client, message, args):
     msg = await message.channel.send("", embed=discord.Embed(title="", description="🔄 Testing your link...", color=discord.Color.blue()))
     with youtube_dl.YoutubeDL({}) as ydl:
         try:
-            ydl.extract_info(args[0], download=False)
-            change_setting(message.guild.id, "supportvideo", args[0])
+            ydl.extract_info(args[1], download=False)
+            change_setting(message.guild.id, "supportvideo", args[1])
             await message.add_reaction("👍")
             await msg.delete()
             await message.channel.send("", embed=discord.Embed(title="", description="✅ Changed video successfully!", color=discord.Color.green()))
