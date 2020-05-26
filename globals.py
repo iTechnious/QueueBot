@@ -1,6 +1,8 @@
 import pymysql
+import discord
 
 from statics import config as conf
+from statics import messages
 
 
 global music
@@ -47,3 +49,25 @@ def get_setting(guild, setting):
         return str(res[2])
     else:
         return None
+
+
+def language_pack(guild, use):
+    lang = get_setting(str(guild), "lang")
+    default_lang = "En"
+    try:
+        pack = getattr(messages, lang)
+    except AttributeError:
+        pack = getattr(messages, default_lang)
+
+    try:
+        message = getattr(pack, use)
+    except AttributeError:
+        try:
+            message = getattr(getattr(messages, default_lang), use)
+        except AttributeError as error:
+            return discord.Embed(title="Internal error",
+                                 description="Please send this to your admin or notify the Queue support.\n"
+                                             "Technical error:\n" + str(error),
+                                 color=discord.Color.red())
+
+    return message

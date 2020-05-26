@@ -10,10 +10,11 @@ import discord
 import youtube_dl
 from discord.utils import get
 
-from globals import get_setting, tickets
+from globals import get_setting, language_pack, tickets
 from helpers.create_ticket import run as create_ticket
 from statics import config as conf
 from statics import init
+from statics import messages
 
 warnings.simplefilter("ignore")
 
@@ -25,6 +26,20 @@ class ClientClass(discord.Client):
     async def on_message(message):
         if message.author.id == client.user.id:
             return
+        if message.content == "!help" and isinstance(message.channel, discord.abc.PrivateChannel):
+            owner_of_guild_id = None
+            for guild in client.guilds:
+                if guild.owner == message.author:
+                    owner_of_guild_id = guild.id
+                    break
+            if owner_of_guild_id is None:
+                await message.channel.send("", embed=messages.En.help_private)
+            else:
+                await message.channel.send("", embed=language_pack(owner_of_guild_id, "help_private"))
+            return
+        if message.channel is discord.DMChannel:
+            return
+
         prefix = get_setting(message.guild.id, "prefix")
 
         if str(message.content).startswith(prefix):
@@ -43,6 +58,8 @@ class ClientClass(discord.Client):
         print("joined the Server: %s" % guild.name)
         print("creating configs...")
         init.init_db(client)
+
+        await guild.owner.send("", embed=language_pack(guild.id).welcome_private)
 
     @staticmethod
     async def on_ready():
@@ -89,10 +106,16 @@ class ClientClass(discord.Client):
             print(member.name, "joined support channel.")
             create_ticket(member)
 
-            await member.send("", embed=discord.Embed(title="Your ticket has been created!", description="You will be automatically moved as soon as a supporter accepts your ticket.\nYou can enjoy some music while you are waiting.", color=discord.Color.purple()))
+            await member.send("", embed=discord.Embed(title="Your ticket has been created!",
+                                                      description="You will be automatically moved as soon as a supporter accepts your ticket.\n"
+                                                                  "You can enjoy some music while you are waiting.",
+                                                      color=discord.Color.purple()))
 
             supporter_chat = await client.fetch_channel(get_setting(member.guild.id, "supporttext"))
-            emb = discord.Embed(title=member.name+" opened ticket #"+str(tickets[member.id]["id"])+".", description="<@"+str(member.id)+"> is waiting in the queue.\nClaim the ticket and move him to your voice channel by reacting to this message.", color=discord.Color.green())
+            emb = discord.Embed(title=member.name+" opened ticket #"+str(tickets[member.id]["id"])+".",
+                                description="<@"+str(member.id)+"> is waiting in the queue.\n"
+                                            "Claim the ticket and move him to your voice channel by reacting to this message.",
+                                color=discord.Color.green())
             ticket_message = await supporter_chat.send("", embed=emb)
             await ticket_message.add_reaction("✅")
             
@@ -156,10 +179,17 @@ class ClientClass(discord.Client):
                             break
 
                     await reaction.message.delete()
-                    await reaction.message.channel.send("", embed=discord.Embed(title="Ticket #"+str(ticket["id"])+" closed.", description="Author: <@"+str(key)+">\nOpened: " + ticket["time"] + "\nClosed: " + str(time.strftime("%Y-%m-%d %H:%M:%S")) + "\nClaimed by: <@"+str(user.id)+">\n", color=discord.Color.gold()))
+                    await reaction.message.channel.send("", embed=discord.Embed(title="Ticket #"+str(ticket["id"])+" closed.",
+                                                                                description="Author: <@"+str(key)+">\n"
+                                                                                            "Opened: " + ticket["time"] + "\n"
+                                                                                            "Closed: " + str(time.strftime("%Y-%m-%d %H:%M:%S")) + "\n"
+                                                                                            "Claimed by: <@"+str(user.id)+">\n",
+                                                                                color=discord.Color.gold()))
                     await reaction.message.channel.guild.get_member(key).move_to(user.voice.channel)
                 else:
-                    error_message = await reaction.message.channel.send("", embed=discord.Embed(title="", description="🚫 You must be in a voice channel to claim a ticket.", color=discord.Color.red()))
+                    error_message = await reaction.message.channel.send("", embed=discord.Embed(title="",
+                                                                                                description="🚫 You must be in a voice channel to claim a ticket.",
+                                                                                                color=discord.Color.red()))
                     await reaction.remove(user)
                     time.sleep(2)
                     await error_message.delete()
